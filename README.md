@@ -1,59 +1,121 @@
 # Communication_Principle_Python
 
-> 《通信原理（Python版）》配套实验源码工程
+> A Python SDK for Communication Principle experiments, signal processing, spectrum analysis, and educational demonstrations.
 
 ---
 
-## 项目简介
+## Overview
 
-Communication_Principle_Python 是配套《通信原理（Python版）》教材开发的实验源码工程。
+Communication_Principle_Python is an educational Python SDK designed for communication engineering courses.
 
-本工程采用 Python 语言实现通信原理课程中的主要理论、算法与实验，覆盖信号分析、傅里叶变换、频谱分析、调制解调、随机过程、数字基带传输、数字调制等内容。
+It provides reusable implementations of common communication signal processing algorithms and visualization tools for teaching, laboratory experiments, and research.
 
-工程目标如下：
-
-- 为教材提供完整的实验源码；
-- 为课堂教学提供可运行的演示程序；
-- 为学生提供课后实验平台；
-- 为教师提供可扩展的教学案例；
-- 为通信算法学习提供统一代码框架。
+The project is written entirely in Python 3.9+ and follows modern Python package standards.
 
 ---
 
-# 工程特点
+## Features
 
-本工程具有以下特点：
+### Signal Generation
 
-- 模块化设计
-- 面向对象实现
-- 完整中文注释
-- 与教材章节一一对应
-- 实验代码可直接运行
-- 支持图片自动保存
-- 支持实验数据自动导出
-- 支持 Windows、Linux、macOS
+- Sine Wave
+- Cosine Wave
+- Square Wave
+- Rectangular Pulse
+- Impulse Signal
+- Step Signal
+
+### Signal Processing
+
+- FFT
+- FFT Shift
+- Single-side Spectrum
+- Double-side Spectrum
+- Power Spectrum
+- Signal Normalization
+- RMS Normalization
+
+### Signal Analysis
+
+- RMS
+- Peak Value
+- Energy
+- Power
+- Mean
+- Variance
+- Standard Deviation
+- SNR
+- PSNR
+
+### Visualization
+
+- Signal Plot
+- Spectrum Plot
+- Comparison Plot
+- Publication-quality Figures
+
+### Export
+
+- Images
+- Experimental Results
+- Tables
 
 ---
 
-# 推荐运行环境
-
-Python
+## Project Structure
 
 ```text
-Python ≥ 3.10
+Communication_Principle_Python
+│
+├── src/
+│   └── communication/
+│       ├── __init__.py
+│       ├── analysis.py
+│       ├── config.py
+│       ├── generator.py
+│       ├── models.py
+│       ├── plotting.py
+│       ├── spectrum.py
+│       └── ...
+│
+├── tests/
+│
+├── docs/
+│
+├── data/
+│
+├── experiments/
+│
+├── output/
+│
+├── pyproject.toml
+├── requirements.txt
+└── README.md
 ```
-
-推荐 IDE
-
-- PyCharm Professional
-- PyCharm Community
-- Visual Studio Code
 
 ---
 
-# 安装依赖
+## Installation
 
-安装 requirements.txt 中的全部依赖：
+Clone the repository
+
+```bash
+git clone https://github.com/yl15308827685-ui/Communication_Principle_Python.git
+```
+
+Enter the project
+
+```bash
+cd Communication_Principle_Python
+```
+
+Install
+
+```bash
+pip install -e .
+```
+
+Or
 
 ```bash
 pip install -r requirements.txt
@@ -61,97 +123,118 @@ pip install -r requirements.txt
 
 ---
 
-# 工程目录
+## Quick Start
+
+```python
+from communication import SignalGenerator
+
+generator = SignalGenerator()
+
+signal = generator.sine()
+
+print(signal)
+```
+
+Output
 
 ```text
-Communication_Principle_Python
-│
-├── README.md
-├── requirements.txt
-│
-├── src
-│   └── communication
-│       ├── config.py
-│       ├── plotting.py
-│       ├── signals.py
-│       ├── spectrum.py
-│       ├── analysis.py
-│       ├── export.py
-│       ├── utils.py
-│       └── __init__.py
-│
-├── experiments
-│   ├── chapter02
-│   ├── chapter03
-│   ├── chapter04
-│   ├── chapter05
-│   └── ...
-│
-├── images
-│
-├── data
-│
-└── docs
+Signal(samples=200, fs=10000.000 Hz)
 ```
 
 ---
 
-# 已完成内容
+## FFT Example
 
-## 第一章
+```python
+from communication import SignalGenerator
+from communication import fft
 
-- 通信系统概述
-- 信号分类
-- 信号模型
+generator = SignalGenerator()
 
-## 第二章（开发中）
+signal = generator.sine()
 
-- 周期信号
-- 傅里叶级数
-- 傅里叶变换
-- FFT 实验
-- 理论频谱验证
+spectrum = fft(signal)
 
----
-
-# 后续计划
-
-第三章
-
-- 模拟调制
-
-第四章
-
-- 随机过程
-
-第五章
-
-- 模拟信道
-
-第六章
-
-- 数字基带传输
-
-第七章
-
-- 数字调制
-
-第八章
-
-- 差错控制编码
-
-……
+print(spectrum.peak_frequency)
+```
 
 ---
 
-# 许可证
+## Running Tests
 
-本工程仅作为《通信原理（Python版）》教材配套源码使用。
+Run all tests
 
-版权所有 © 作者保留所有权利。
+```bash
+pytest
+```
+
+Current status
+
+```text
+19 Passed
+```
 
 ---
 
-# 联系方式
+## Development Environment
 
-本工程将随着教材持续更新。
+- Python 3.9+
+- NumPy
+- Matplotlib
+- PyTest
+- PyCharm
+
+---
+
+## Roadmap
+
+Current Version
+
+- Signal Generator
+- Spectrum Analyzer
+- Signal Analyzer
+- Plotting Module
+- Unit Tests
+
+Planned Features
+
+- Digital Modulation
+- Analog Modulation
+- Channel Coding
+- Error Control Coding
+- Filter Design
+- Eye Diagram
+- Constellation Diagram
+- BER Simulation
+- Digital Communication System
+- GUI Laboratory
+
+---
+
+## Documentation
+
+Project documentation will be continuously improved in the `docs` directory.
+
+---
+
+## Contributing
+
+Issues and Pull Requests are welcome.
+
+Please make sure all tests pass before submitting changes.
+
+---
+
+## License
+
+This project is released under the MIT License.
+
+---
+
+## Author
+
+Communication_Principle_Python Development Team
+
+GitHub
+
+https://github.com/yl15308827685-ui/Communication_Principle_Python
