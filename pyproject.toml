@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "communication-principle-python"
+version = "1.2.0"
+description = "Communication Principle Teaching SDK"
+readme = "README.md"
+requires-python = ">=3.9"
+
+authors = [
+    {name = "Communication_Principle_Python"}
+]
+
+dependencies = [
+    "numpy>=1.22",
+    "matplotlib>=3.6",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+
+minversion = "8.0"
+
+testpaths = [
+    "tests"
+]
+
+pythonpath = [
+    "src"
+]
+
+python_files = [
+    "test_*.py"
+]
+
+python_classes = [
+    "Test*"
+]
+
+python_functions = [
+    "test_*"
+]
+
+addopts = [
+    "-v",
+    "--tb=short"
+]
+
+[tool.setuptools.package-data]
+communication = ["*.txt"]
+
+[project.urls]
+Homepage = "https://github.com/..."
+Documentation = "..."
+
