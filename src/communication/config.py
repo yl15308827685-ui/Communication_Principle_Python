@@ -26,7 +26,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 SRC_DIR = PROJECT_ROOT / "src"
 
-EXPERIMENT_DIR = PROJECT_ROOT / "experiments"
+EXPERIMENT_DIR = PROJECT_ROOT / "examples"
 
 OUTPUT_DIR = PROJECT_ROOT / "output"
 
