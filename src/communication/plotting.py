@@ -1,458 +1,883 @@
 """
-==========================================================
+=============================================================
 Communication_Principle_Python
 
 File:
     plotting.py
 
 Version:
-    1.1.0
+    2.1.0
 
 Description:
-    出版级绘图模块
-    Python 3.9 Compatible
+    Unified plotting module.
 
-==========================================================
+Python:
+    >=3.9
+=============================================================
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 from typing import Tuple
 
 import matplotlib.pyplot as plt
-import numpy as np
 
-from .config import ExperimentConfig
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+
 from .models import Signal
 from .models import Spectrum
+from .config import image_path
 
 
 # ==========================================================
-# 默认绘图风格
+# Plot Style
 # ==========================================================
 
 @dataclass
 class PlotStyle:
+    """
+    Global plotting style.
+    """
 
+    # Figure
+    figsize: Tuple[float, float] = (10.0, 4.0)
+    dpi: int = 300
+    facecolor: str = "white"
+
+    # Line
     linewidth: float = 2.0
-
     linestyle: str = "-"
-
-    marker: str = ""
-
+    color: str = "C0"
     alpha: float = 1.0
 
-    grid: bool = True
+    # Marker
+    marker: Optional[str] = None
+    markersize: float = 5.0
 
-    dpi: int = 300
-
-    figsize: Tuple[float, float] = (10, 4)
-
-    title_size: int = 15
-
+    # Font
+    title_size: int = 16
     label_size: int = 12
+    tick_size: int = 10
 
-    tick_size: int = 11
+    # Grid
+    grid: bool = True
+    grid_alpha: float = 0.35
 
-    legend_size: int = 11
+    # Legend
+    legend: bool = True
+    legend_fontsize: int = 10
+
+    # Layout
+    tight_layout: bool = True
+
+    # Save
+    save_dpi: int = 300
+    transparent: bool = False
+    bbox_inches: str = "tight"
+    pad_inches: float = 0.10
 
 
 # ==========================================================
-# Figure管理器
+# Figure Manager
 # ==========================================================
 
 class FigureManager:
+    """
+    Wrapper of matplotlib Figure and Axes.
+    """
 
     def __init__(
-
         self,
-
-        config: Optional[ExperimentConfig] = None
-
+        figure: Figure,
+        axes: Axes,
     ):
 
-        self.config = config or ExperimentConfig()
-
-        self.style = PlotStyle()
-
-        self._configure_matplotlib()
+        self.figure = figure
+        self.axes = axes
 
     # ------------------------------------------------------
-
-    @staticmethod
-    def _configure_matplotlib():
-
-        plt.rcParams["figure.dpi"] = 300
-
-        plt.rcParams["axes.grid"] = True
-
-        plt.rcParams["grid.linestyle"] = "--"
-
-        plt.rcParams["grid.alpha"] = 0.35
-
-        plt.rcParams["axes.unicode_minus"] = False
-
-        # Windows / Linux / Mac 自动兼容
-
-        plt.rcParams["font.sans-serif"] = [
-
-            "Microsoft YaHei",
-
-            "SimHei",
-
-            "PingFang SC",
-
-            "Noto Sans CJK SC",
-
-            "Arial Unicode MS",
-
-            "DejaVu Sans"
-
-        ]
-
+    # Alias
     # ------------------------------------------------------
 
-    def figure(
+    @property
+    def fig(self) -> Figure:
+        return self.figure
 
+    @property
+    def ax(self) -> Axes:
+        return self.axes
+
+    # ------------------------------------------------------
+    # Display
+    # ------------------------------------------------------
+
+    def show(self) -> None:
+        plt.show()
+
+    def close(self) -> None:
+        plt.close(self.figure)
+
+    def clear(self) -> None:
+        self.axes.cla()
+
+    # ------------------------------------------------------
+    # Save
+    # ------------------------------------------------------
+
+    def save(
         self,
+        filename: str,
+        dpi: int = 300,
+    ) -> Path:
+        """
+        Save current figure.
+        """
 
-        width: Optional[float] = None,
+        path = Path(filename)
 
-        height: Optional[float] = None
+        if not path.is_absolute():
+            path = Path.cwd() / path
 
-    ):
-
-        width = width or self.config.figure_width
-
-        height = height or self.config.figure_height
-
-        return plt.figure(
-
-            figsize=(width, height),
-
-            dpi=self.style.dpi
-
+        path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
         )
 
+        self.figure.savefig(
+            path,
+            dpi=dpi,
+            bbox_inches="tight",
+        )
+
+        return path
+
+    # ------------------------------------------------------
+    # Figure Setting
     # ------------------------------------------------------
 
-    @staticmethod
-    def close():
+    def grid(
+        self,
+        enable: bool = True,
+    ) -> None:
 
-        plt.close()
+        self.axes.grid(enable)
+
+    def tight_layout(self) -> None:
+
+        self.figure.tight_layout()
+
+    def set_title(
+        self,
+        title: str,
+    ) -> None:
+
+        self.axes.set_title(title)
+
+    def set_xlabel(
+        self,
+        label: str,
+    ) -> None:
+
+        self.axes.set_xlabel(label)
+
+    def set_ylabel(
+        self,
+        label: str,
+    ) -> None:
+
+        self.axes.set_ylabel(label)
+
+    def set_xlim(
+        self,
+        left: float,
+        right: float,
+    ) -> None:
+
+        self.axes.set_xlim(left, right)
+
+    def set_ylim(
+        self,
+        bottom: float,
+        top: float,
+    ) -> None:
+
+        self.axes.set_ylim(bottom, top)
+
+    # ------------------------------------------------------
+    # Access
+    # ------------------------------------------------------
+
+    def get_figure(self) -> Figure:
+
+        return self.figure
+
+    def get_axes(self) -> Axes:
+
+        return self.axes
 
     # ------------------------------------------------------
 
-    @staticmethod
-    def show():
+    def __repr__(self) -> str:
 
-        plt.show()
+        return (
+            f"FigureManager("
+            f"figure={self.figure!r}, "
+            f"axes={self.axes!r})"
+        )
+
+
 
 
 # ==========================================================
-# 时间域绘图
+# Internal Figure Utilities
+# ==========================================================
+
+DEFAULT_STYLE = PlotStyle()
+
+
+def _create_manager(
+    style: Optional[PlotStyle] = None,
+) -> FigureManager:
+    """
+    Create a FigureManager.
+
+    Parameters
+    ----------
+    style
+        Plot style.
+
+    Returns
+    -------
+    FigureManager
+    """
+
+    if style is None:
+        style = DEFAULT_STYLE
+
+    figure, axes = plt.subplots(
+        figsize=style.figsize,
+        dpi=style.dpi,
+        facecolor=style.facecolor,
+    )
+
+    return FigureManager(
+        figure=figure,
+        axes=axes,
+    )
+
+
+# ==========================================================
+# Apply Style
+# ==========================================================
+
+def _apply_style(
+    manager: FigureManager,
+    style: PlotStyle,
+) -> None:
+    """
+    Apply plotting style.
+    """
+
+    ax = manager.ax
+
+    ax.tick_params(
+        axis="both",
+        labelsize=style.tick_size,
+    )
+
+    if style.grid:
+
+        ax.grid(
+            True,
+            alpha=style.grid_alpha,
+        )
+
+    if style.legend:
+
+        handles, labels = ax.get_legend_handles_labels()
+
+        if handles:
+
+            ax.legend(
+                fontsize=style.legend_fontsize,
+            )
+
+
+# ==========================================================
+# Finalize Figure
+# ==========================================================
+
+def _finalize(
+    manager: FigureManager,
+    style: PlotStyle,
+) -> FigureManager:
+    """
+    Finalize figure before returning.
+    """
+
+    _apply_style(
+        manager,
+        style,
+    )
+
+    if style.tight_layout:
+
+        manager.tight_layout()
+
+    return manager
+
+# ==========================================================
+# Internal Drawing
+# ==========================================================
+
+def _draw_signal(
+    manager: FigureManager,
+    signal: Signal,
+    *,
+    title: Optional[str] = None,
+    xlabel: str = "Time (s)",
+    ylabel: str = "Amplitude",
+    label: Optional[str] = None,
+    style: Optional[PlotStyle] = None,
+) -> None:
+    """
+    Draw a time-domain signal.
+
+    Parameters
+    ----------
+    manager
+        Figure manager.
+
+    signal
+        Signal object.
+
+    title
+        Figure title.
+
+    xlabel
+        X-axis label.
+
+    ylabel
+        Y-axis label.
+
+    label
+        Legend label.
+
+    style
+        Plot style.
+    """
+
+    if style is None:
+        style = DEFAULT_STYLE
+
+    ax = manager.ax
+
+    ax.plot(
+        signal.time,
+        signal.value,
+        linewidth=style.linewidth,
+        linestyle=style.linestyle,
+        color=style.color,
+        alpha=style.alpha,
+        marker=style.marker,
+        markersize=style.markersize,
+        label=label,
+    )
+
+    if title is None:
+        title = signal.name
+
+    ax.set_title(
+        title,
+        fontsize=style.title_size,
+    )
+
+    ax.set_xlabel(
+        xlabel,
+        fontsize=style.label_size,
+    )
+
+    ax.set_ylabel(
+        ylabel,
+        fontsize=style.label_size,
+    )
+
+
+# ==========================================================
+# Public API
 # ==========================================================
 
 def plot_signal(
-
     signal: Signal,
-
+    *,
     title: Optional[str] = None,
+    xlabel: str = "Time (s)",
+    ylabel: str = "Amplitude",
+    label: Optional[str] = None,
+    style: Optional[PlotStyle] = None,
+) -> FigureManager:
+    """
+    Plot a time-domain signal.
 
-    color: str = "tab:blue",
+    Parameters
+    ----------
+    signal
+        Signal object.
 
-    linewidth: float = 2.0
+    title
+        Figure title.
 
-):
+    xlabel
+        X-axis label.
 
-    plt.plot(
+    ylabel
+        Y-axis label.
 
-        signal.time,
+    label
+        Legend label.
 
-        signal.value,
+    style
+        Plot style.
 
-        color=color,
+    Returns
+    -------
+    FigureManager
+    """
 
-        linewidth=linewidth,
+    if style is None:
+        style = DEFAULT_STYLE
 
-        label=signal.name
+    manager = _create_manager(style)
 
+    _draw_signal(
+        manager=manager,
+        signal=signal,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        label=label,
+        style=style,
     )
 
-    plt.xlabel("Time (s)")
+    return _finalize(
+        manager,
+        style,
+    )
 
-    plt.ylabel(signal.unit)
+# ==========================================================
+# Compare Signals
+# ==========================================================
 
-    plt.grid(True)
+def plot_compare(
+    signal1: Signal,
+    signal2: Signal,
+    *,
+    title: str = "Signal Comparison",
+    xlabel: str = "Time (s)",
+    ylabel: str = "Amplitude",
+    label1: Optional[str] = None,
+    label2: Optional[str] = None,
+    style: Optional[PlotStyle] = None,
+) -> FigureManager:
+    """
+    Plot two signals for comparison.
 
-    if title:
+    Parameters
+    ----------
+    signal1
+        First signal.
 
-        plt.title(title)
+    signal2
+        Second signal.
 
-    else:
+    title
+        Figure title.
 
-        plt.title(signal.name)
+    xlabel
+        X-axis label.
 
-    plt.legend()
+    ylabel
+        Y-axis label.
+
+    label1
+        Legend of first signal.
+
+    label2
+        Legend of second signal.
+
+    style
+        Plot style.
+
+    Returns
+    -------
+    FigureManager
+    """
+
+    if style is None:
+        style = DEFAULT_STYLE
+
+    manager = _create_manager(style)
+
+    ax = manager.ax
+
+    if label1 is None:
+        label1 = signal1.name
+
+    if label2 is None:
+        label2 = signal2.name
+
+    ax.plot(
+        signal1.time,
+        signal1.value,
+        linewidth=style.linewidth,
+        linestyle="-",
+        alpha=style.alpha,
+        label=label1,
+    )
+
+
+
+    ax.plot(
+        signal2.time,
+        signal2.value,
+        linewidth=style.linewidth,
+        alpha=style.alpha,
+        label=label2,
+    )
+
+    ax.set_title(
+        title,
+        fontsize=style.title_size,
+    )
+
+    ax.set_xlabel(
+        xlabel,
+        fontsize=style.label_size,
+    )
+
+    ax.set_ylabel(
+        ylabel,
+        fontsize=style.label_size,
+    )
+
+    return _finalize(
+        manager,
+        style,
+    )
+
 
 
 # ==========================================================
-# 双边频谱
+# Internal Spectrum Drawing
+# ==========================================================
+
+def _draw_spectrum(
+    manager: FigureManager,
+    spectrum: Spectrum,
+    *,
+    title: Optional[str] = None,
+    xlabel: str = "Frequency (Hz)",
+    ylabel: str = "Magnitude",
+    label: Optional[str] = None,
+    style: Optional[PlotStyle] = None,
+) -> None:
+    """
+    Draw a frequency-domain spectrum.
+    """
+
+    if style is None:
+        style = DEFAULT_STYLE
+
+    ax = manager.ax
+
+    ax.plot(
+        spectrum.frequency,
+        spectrum.magnitude,
+        linewidth=style.linewidth,
+        linestyle=style.linestyle,
+        color=style.color,
+        alpha=style.alpha,
+        marker=style.marker,
+        markersize=style.markersize,
+        label=label,
+    )
+
+    if title is None:
+        title = "Spectrum"
+
+    ax.set_title(
+        title,
+        fontsize=style.title_size,
+    )
+
+    ax.set_xlabel(
+        xlabel,
+        fontsize=style.label_size,
+    )
+
+    ax.set_ylabel(
+        ylabel,
+        fontsize=style.label_size,
+    )
+
+# ==========================================================
+# Plot Spectrum
 # ==========================================================
 
 def plot_spectrum(
-
     spectrum: Spectrum,
-
+    *,
     title: Optional[str] = None,
+    xlabel: str = "Frequency (Hz)",
+    ylabel: str = "Magnitude",
+    label: Optional[str] = None,
+    style: Optional[PlotStyle] = None,
+) -> FigureManager:
+    """
+    Plot frequency-domain spectrum.
+    """
 
-    color: str = "tab:red"
+    if style is None:
+        style = DEFAULT_STYLE
 
-):
+    manager = _create_manager(style)
 
-    plt.plot(
-
-        spectrum.frequency,
-
-        spectrum.magnitude,
-
-        color=color,
-
-        linewidth=2
-
+    _draw_spectrum(
+        manager=manager,
+        spectrum=spectrum,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        label=label,
+        style=style,
     )
 
-    plt.xlabel("Frequency (Hz)")
+    return _finalize(
+        manager,
+        style,
+    )
 
-    plt.ylabel("Magnitude")
-
-    plt.grid(True)
-
-    if title:
-
-        plt.title(title)
-
-    else:
-
-        plt.title(spectrum.name)
 
 # ==========================================================
-# 单边频谱绘图
+# Alias
 # ==========================================================
 
 def plot_single_spectrum(
     spectrum: Spectrum,
-    title: Optional[str] = None,
-    color: str = "tab:blue",
-    linewidth: float = 2.0
-):
+    **kwargs,
+) -> FigureManager:
     """
-    绘制单边频谱
+    Alias of plot_spectrum().
     """
 
-    plt.plot(
-        spectrum.frequency,
-        spectrum.magnitude,
-        color=color,
-        linewidth=linewidth,
-        label=spectrum.name
+    return plot_spectrum(
+        spectrum,
+        **kwargs,
     )
 
-    plt.xlabel("Frequency (Hz)")
-    plt.ylabel("Magnitude")
-    plt.grid(True)
-
-    if title is None:
-        title = spectrum.name
-
-    plt.title(title)
-    plt.legend()
-
-
 # ==========================================================
-# FFT与理论频谱对比
-# ==========================================================
-
-def plot_compare(
-    frequency: np.ndarray,
-    fft_value: np.ndarray,
-    theory_value: np.ndarray,
-    title: str = "FFT vs Theory"
-):
-    """
-    FFT频谱与理论频谱对比
-    """
-
-    plt.plot(
-        frequency,
-        fft_value,
-        linewidth=2,
-        label="FFT"
-    )
-
-    plt.plot(
-        frequency,
-        theory_value,
-        "--",
-        linewidth=2,
-        label="Theory"
-    )
-
-    plt.xlabel("Frequency (Hz)")
-    plt.ylabel("Magnitude")
-    plt.title(title)
-    plt.grid(True)
-    plt.legend()
-
-
-# ==========================================================
-# 双子图：时域 + 频域
+# Plot Signal And Spectrum
 # ==========================================================
 
 def plot_signal_and_spectrum(
     signal: Signal,
-    spectrum: Spectrum
-):
+    spectrum: Spectrum,
+    *,
+    signal_title: str = "Time Domain",
+    spectrum_title: str = "Frequency Domain",
+    style: Optional[PlotStyle] = None,
+) -> FigureManager:
     """
-    同时绘制时域与频域
+    Plot signal and spectrum in one figure.
+
+    Parameters
+    ----------
+    signal
+        Time-domain signal.
+
+    spectrum
+        Frequency-domain spectrum.
+
+    signal_title
+        Title of signal subplot.
+
+    spectrum_title
+        Title of spectrum subplot.
+
+    style
+        Plot style.
+
+    Returns
+    -------
+    FigureManager
     """
 
-    plt.figure(figsize=(10, 7))
+    if style is None:
+        style = DEFAULT_STYLE
 
-    plt.subplot(2, 1, 1)
-
-    plot_signal(
-        signal,
-        title=signal.name
+    figure, axes = plt.subplots(
+        2,
+        1,
+        figsize=style.figsize,
+        dpi=style.dpi,
+        facecolor=style.facecolor,
     )
 
-    plt.subplot(2, 1, 2)
-
-    plot_spectrum(
-        spectrum,
-        title=spectrum.name
+    manager = FigureManager(
+        figure=figure,
+        axes=axes[0],
     )
 
-    plt.tight_layout()
+    # ------------------------------------------------------
+    # Time Domain
+    # ------------------------------------------------------
 
+    axes[0].plot(
+        signal.time,
+        signal.value,
+        linewidth=style.linewidth,
+        alpha=style.alpha,
+    )
 
-# ==========================================================
-# 设置时间轴
-# ==========================================================
+    axes[0].set_title(
+        signal_title,
+        fontsize=style.title_size,
+    )
 
-def set_time_axis(
-    xmin: float,
-    xmax: float
-):
-    """
-    设置时间轴范围
-    """
+    axes[0].set_xlabel(
+        "Time (s)",
+        fontsize=style.label_size,
+    )
 
-    plt.xlim(xmin, xmax)
+    axes[0].set_ylabel(
+        "Amplitude",
+        fontsize=style.label_size,
+    )
 
+    if style.grid:
+        axes[0].grid(
+            True,
+            alpha=style.grid_alpha,
+        )
 
-# ==========================================================
-# 设置频率轴
-# ==========================================================
+    # ------------------------------------------------------
+    # Frequency Domain
+    # ------------------------------------------------------
 
-def set_frequency_axis(
-    xmin: float,
-    xmax: float
-):
-    """
-    设置频率轴范围
-    """
+    axes[1].plot(
+        spectrum.frequency,
+        spectrum.magnitude,
+        linewidth=style.linewidth,
+        alpha=style.alpha,
+    )
 
-    plt.xlim(xmin, xmax)
+    axes[1].set_title(
+        spectrum_title,
+        fontsize=style.title_size,
+    )
 
+    axes[1].set_xlabel(
+        "Frequency (Hz)",
+        fontsize=style.label_size,
+    )
 
-# ==========================================================
-# 设置标题
-# ==========================================================
+    axes[1].set_ylabel(
+        "Magnitude",
+        fontsize=style.label_size,
+    )
 
-def add_title(
-    title: str
-):
-    """
-    设置标题
-    """
+    if style.grid:
+        axes[1].grid(
+            True,
+            alpha=style.grid_alpha,
+        )
 
-    plt.title(title)
+    if style.tight_layout:
+        figure.tight_layout()
 
-
-# ==========================================================
-# 设置X轴
-# ==========================================================
-
-def add_xlabel(
-    label: str
-):
-    """
-    设置X轴标题
-    """
-
-    plt.xlabel(label)
-
-
-# ==========================================================
-# 设置Y轴
-# ==========================================================
-
-def add_ylabel(
-    label: str
-):
-    """
-    设置Y轴标题
-    """
-
-    plt.ylabel(label)
-
+    return manager
 
 # ==========================================================
-# 图例
-# ==========================================================
-
-def add_legend():
-    """
-    添加图例
-    """
-
-    plt.legend()
-
-
-# ==========================================================
-# 当前图保存
+# Save Current Figure
 # ==========================================================
 
 def save_current_figure(
     filename: str,
-    dpi: int = 300
-):
+    *,
+    dpi: Optional[int] = None,
+    transparent: bool = False,
+    bbox_inches: str = "tight",
+) -> Path:
     """
-    保存当前图像
+    Save current matplotlib figure.
+
+    Parameters
+    ----------
+    filename
+        Output filename.
+
+    dpi
+        Figure DPI.
+        If None, use matplotlib default.
+
+    transparent
+        Whether to save with transparent background.
+
+    bbox_inches
+        Bounding box option.
+
+    Returns
+    -------
+    Path
+        Absolute output path.
     """
 
-    plt.savefig(
-        filename,
-        dpi=dpi,
-        bbox_inches="tight"
+    output_path = image_path(filename)
+
+    # 自动创建目录
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
     )
 
+    plt.savefig(
+        output_path,
+        dpi=dpi,
+        transparent=transparent,
+        bbox_inches=bbox_inches,
+    )
+
+    return output_path.resolve()
 
 # ==========================================================
-# 清空当前图
+# Public Export
 # ==========================================================
 
-def clear():
-    """
-    清空当前图形
-    """
+__all__ = [
 
-    plt.clf()
+    # Style
+    "PlotStyle",
 
+    # Figure
+    "FigureManager",
 
-# ==========================================================
-# End of File
-# ==========================================================
+    # Signal
+    "plot_signal",
+
+    # Spectrum
+    "plot_spectrum",
+    "plot_single_spectrum",
+
+    # Comparison
+    "plot_compare",
+
+    # Combined
+    "plot_signal_and_spectrum",
+
+    # Save
+    "save_current_figure",
+]

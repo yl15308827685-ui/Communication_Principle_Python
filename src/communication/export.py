@@ -6,516 +6,527 @@ File:
     export.py
 
 Version:
-    1.1.0
+    1.0.0
 
 Description:
-    数据导出模块
-    Python 3.9 Compatible
+    Export Module
+
+Python:
+    >=3.9
 
 ==========================================================
 """
 
 from __future__ import annotations
 
-import csv
-import json
-
 from pathlib import Path
-from typing import Any
-from typing import Dict
-from typing import Iterable
-from typing import List
+from typing import Union
+
+import csv
 
 import matplotlib.pyplot as plt
-import numpy as np
-
-from .config import DATA_DIR
-from .config import IMAGE_DIR
 
 from .models import Signal
 from .models import Spectrum
+from .models import SignalStatistics
 
 
-class Exporter:
+
+# ==========================================================
+# Signal Exporter
+# ==========================================================
+
+class SignalExporter:
     """
-    数据导出器
+    Export signal analysis results.
+
+    Examples
+    --------
+
+    >>> exporter = SignalExporter()
+
+    >>> exporter.export_signal_csv(
+    ...     signal,
+    ...     "signal.csv",
+    ... )
     """
 
-    def __init__(
+    def export_signal_csv(
         self,
-        image_dir: Path = IMAGE_DIR,
-        data_dir: Path = DATA_DIR
-    ):
+        signal_or_spectrum: Union[
+            Signal,
+            Spectrum,
+        ],
+        filename: Union[str, Path],
+    ) -> None:
+        """
+        Export Signal to CSV.
+        """
 
-        self.image_dir = Path(image_dir)
-
-        self.data_dir = Path(data_dir)
-
-        self.image_dir.mkdir(
-            parents=True,
-            exist_ok=True
+        export_signal_csv(
+            signal_or_spectrum,
+            filename,
         )
 
-        self.data_dir.mkdir(
-            parents=True,
-            exist_ok=True
-        )
-
-    # =====================================================
-    # 内部路径
-    # =====================================================
-
-    def image_path(
-        self,
-        filename: str
-    ) -> Path:
-
-        return self.image_dir / filename
-
-    def data_path(
-        self,
-        filename: str
-    ) -> Path:
-
-        return self.data_dir / filename
-
-    # =====================================================
-    # 图片保存
-    # =====================================================
-
-    def save_png(
-        self,
-        filename: str,
-        dpi: int = 300
-    ) -> Path:
-
-        path = self.image_path(filename)
-
-        plt.savefig(
-
-            path,
-
-            dpi=dpi,
-
-            bbox_inches="tight"
-
-        )
-
-        return path
-
-    def save_svg(
-        self,
-        filename: str
-    ) -> Path:
-
-        path = self.image_path(filename)
-
-        plt.savefig(
-
-            path,
-
-            format="svg",
-
-            bbox_inches="tight"
-
-        )
-
-        return path
-
-    def save_pdf(
-        self,
-        filename: str
-    ) -> Path:
-
-        path = self.image_path(filename)
-
-        plt.savefig(
-
-            path,
-
-            format="pdf",
-
-            bbox_inches="tight"
-
-        )
-
-        return path
-
-    # =====================================================
-    # NumPy
-    # =====================================================
-
-    def save_numpy(
-        self,
-        filename: str,
-        array: np.ndarray
-    ) -> Path:
-
-        path = self.data_path(filename)
-
-        np.save(
-
-            path,
-
-            array
-
-        )
-
-        return path
-
-    # =====================================================
-    # Signal
-    # =====================================================
-
-    def save_signal(
-        self,
-        signal: Signal,
-        filename: str
-    ) -> Path:
-
-        path = self.data_path(filename)
-
-        data = np.column_stack(
-
-            (
-
-                signal.time,
-
-                signal.value
-
-            )
-
-        )
-
-        np.savetxt(
-
-            path,
-
-            data,
-
-            delimiter=",",
-
-            header="time,value",
-
-            comments=""
-
-        )
-
-        return path
-
-    # =====================================================
-    # Spectrum
-    # =====================================================
-
-    def save_spectrum(
+    def export_spectrum_csv(
         self,
         spectrum: Spectrum,
-        filename: str
-    ) -> Path:
-
-        path = self.data_path(filename)
-
-        data = np.column_stack(
-
-            (
-
-                spectrum.frequency,
-
-                spectrum.magnitude,
-
-                spectrum.phase
-
-            )
-
-        )
-
-        np.savetxt(
-
-            path,
-
-            data,
-
-            delimiter=",",
-
-            header="frequency,magnitude,phase",
-
-            comments=""
-
-        )
-
-        return path
-
-    # =====================================================
-    # CSV
-    # =====================================================
-
-    def save_csv(
-        self,
-        filename: str,
-        header: List[str],
-        rows: Iterable[Iterable[Any]]
-    ) -> Path:
+        filename: Union[str, Path],
+    ) -> None:
         """
-        保存CSV文件
+        Export Spectrum to CSV.
         """
 
-        path = self.data_path(filename)
-
-        with open(
-            path,
-            "w",
-            newline="",
-            encoding="utf-8-sig"
-        ) as f:
-
-            writer = csv.writer(f)
-
-            if header:
-                writer.writerow(header)
-
-            writer.writerows(rows)
-
-        return path
-
-    # =====================================================
-    # Dict -> CSV
-    # =====================================================
-
-    def save_dict(
-        self,
-        filename: str,
-        data: Dict[str, Any]
-    ) -> Path:
-        """
-        保存字典为CSV
-        """
-
-        rows = []
-
-        for key, value in data.items():
-
-            rows.append([key, value])
-
-        return self.save_csv(
-
+        export_spectrum_csv(
+            spectrum,
             filename,
-
-            ["Key", "Value"],
-
-            rows
-
         )
 
-    # =====================================================
-    # JSON
-    # =====================================================
-
-    def save_json(
+    def export_statistics_csv(
         self,
-        filename: str,
-        data: Dict[str, Any]
-    ) -> Path:
+        statistics: SignalStatistics,
+        filename: Union[str, Path],
+    ) -> None:
         """
-        保存JSON
+        Export SignalStatistics to CSV.
         """
 
-        path = self.data_path(filename)
+        export_statistics_csv(
+            statistics,
+            filename,
+        )
 
-        with open(
-            path,
-            "w",
-            encoding="utf-8"
-        ) as f:
+    def save_figure(
+        self,
+        filename: Union[str, Path],
+        dpi: int = 300,
+    ) -> None:
+        """
+        Save current figure.
+        """
 
-            json.dump(
+        save_figure(
+            filename,
+            dpi=dpi,
+        )
 
-                data,
 
-                f,
+# ==========================================================
+# Internal Helper
+# ==========================================================
 
-                indent=4,
+def _to_path(
+    filename: Union[str, Path],
+) -> Path:
+    """
+    Convert filename to Path object.
+    """
 
-                ensure_ascii=False
+    return Path(filename)
 
+
+# ==========================================================
+# Export Signal
+# ==========================================================
+
+def export_signal_csv(
+    signal_or_spectrum,
+    filename: Union[str, Path],
+) -> None:
+    """
+    Export Signal or Spectrum to CSV.
+    """
+
+    path = _to_path(filename)
+
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    with open(
+        path,
+        "w",
+        newline="",
+        encoding="utf-8",
+    ) as csvfile:
+
+        writer = csv.writer(csvfile)
+
+        # ----------------------------------------
+        # Signal
+        # ----------------------------------------
+
+        if isinstance(signal_or_spectrum, Signal):
+
+            writer.writerow(
+                [
+                    "Time",
+                    "Value",
+                ]
             )
 
-        return path
+            for t, v in zip(
+                signal_or_spectrum.time,
+                signal_or_spectrum.value,
+            ):
 
-    # =====================================================
-    # 批量保存Signal
-    # =====================================================
-
-    def save_signals(
-        self,
-        signals: List[Signal],
-        prefix: str = "signal"
-    ) -> List[Path]:
-
-        paths = []
-
-        for index, signal in enumerate(signals, start=1):
-
-            filename = f"{prefix}_{index:03d}.csv"
-
-            paths.append(
-
-                self.save_signal(
-
-                    signal,
-
-                    filename
-
+                writer.writerow(
+                    [
+                        t,
+                        v,
+                    ]
                 )
 
+            return
+
+        # ----------------------------------------
+        # Spectrum
+        # ----------------------------------------
+
+        if isinstance(signal_or_spectrum, Spectrum):
+
+            writer.writerow(
+                [
+                    "Frequency",
+                    "Magnitude",
+                    "Phase",
+                ]
             )
 
-        return paths
+            for f, m, p in zip(
+                signal_or_spectrum.frequency,
+                signal_or_spectrum.magnitude,
+                signal_or_spectrum.phase,
+            ):
 
-    # =====================================================
-    # 批量保存Spectrum
-    # =====================================================
-
-    def save_spectra(
-        self,
-        spectra: List[Spectrum],
-        prefix: str = "spectrum"
-    ) -> List[Path]:
-
-        paths = []
-
-        for index, spectrum in enumerate(spectra, start=1):
-
-            filename = f"{prefix}_{index:03d}.csv"
-
-            paths.append(
-
-                self.save_spectrum(
-
-                    spectrum,
-
-                    filename
-
+                writer.writerow(
+                    [
+                        f,
+                        m,
+                        p,
+                    ]
                 )
 
-            )
+            return
 
-        return paths
+        # ----------------------------------------
 
-    # =====================================================
-    # 实验结果
-    # =====================================================
-
-    def save_result(
-        self,
-        filename: str,
-        result: Dict[str, Any]
-    ) -> Path:
-
-        if filename.lower().endswith(".json"):
-
-            return self.save_json(
-
-                filename,
-
-                result
-
-            )
-
-        return self.save_dict(
-
-            filename,
-
-            result
-
+        raise TypeError(
+            "Input must be Signal or Spectrum."
         )
 
-
 # ==========================================================
-# 默认Exporter
-# ==========================================================
-
-_default_exporter = Exporter()
-
-
-# ==========================================================
-# 快捷接口
+# Export Spectrum
 # ==========================================================
 
-def save_png(
-    filename: str,
-    dpi: int = 300
-) -> Path:
-
-    return _default_exporter.save_png(
-        filename,
-        dpi
-    )
-
-
-def save_svg(
-    filename: str
-) -> Path:
-
-    return _default_exporter.save_svg(
-        filename
-    )
-
-
-def save_pdf(
-    filename: str
-) -> Path:
-
-    return _default_exporter.save_pdf(
-        filename
-    )
-
-
-def save_signal(
-    signal: Signal,
-    filename: str
-) -> Path:
-
-    return _default_exporter.save_signal(
-        signal,
-        filename
-    )
-
-
-def save_spectrum(
+def export_spectrum_csv(
     spectrum: Spectrum,
-    filename: str
-) -> Path:
+    filename: Union[str, Path],
+) -> None:
+    """
+    Export Spectrum to CSV.
 
-    return _default_exporter.save_spectrum(
+    Parameters
+    ----------
+    spectrum
+        Input spectrum.
+
+    filename
+        Output CSV filename.
+    """
+
+    if not isinstance(
         spectrum,
-        filename
+        Spectrum,
+    ):
+
+        raise TypeError(
+            "spectrum must be a Spectrum object."
+        )
+
+    path = _to_path(
+        filename,
     )
 
+    with open(
 
-def save_csv(
-    filename: str,
-    header: List[str],
-    rows: Iterable[Iterable[Any]]
-) -> Path:
+        path,
 
-    return _default_exporter.save_csv(
+        "w",
+
+        newline="",
+
+        encoding="utf-8",
+
+    ) as csvfile:
+
+        writer = csv.writer(
+            csvfile
+        )
+
+        writer.writerow(
+
+            [
+
+                "Frequency",
+
+                "Magnitude",
+
+                "Phase",
+
+            ]
+
+        )
+
+        for frequency, magnitude, phase in zip(
+
+            spectrum.frequency,
+
+            spectrum.magnitude,
+
+            spectrum.phase,
+
+        ):
+
+            writer.writerow(
+
+                [
+
+                    frequency,
+
+                    magnitude,
+
+                    phase,
+
+                ]
+
+            )
+
+
+# ==========================================================
+# Export Signal Statistics
+# ==========================================================
+
+def export_statistics_csv(
+    statistics: SignalStatistics,
+    filename: Union[str, Path],
+) -> None:
+    """
+    Export SignalStatistics to CSV.
+
+    Parameters
+    ----------
+    statistics
+        Signal statistics.
+
+    filename
+        Output CSV filename.
+    """
+
+    if not isinstance(
+        statistics,
+        SignalStatistics,
+    ):
+
+        raise TypeError(
+            "statistics must be a SignalStatistics object."
+        )
+
+    path = _to_path(
         filename,
-        header,
-        rows
     )
 
+    with open(
 
-def save_json(
-    filename: str,
-    data: Dict[str, Any]
-) -> Path:
+        path,
 
-    return _default_exporter.save_json(
+        "w",
+
+        newline="",
+
+        encoding="utf-8",
+
+    ) as csvfile:
+
+        writer = csv.writer(
+            csvfile
+        )
+
+        writer.writerow(
+
+            [
+
+                "Item",
+
+                "Value",
+
+            ]
+
+        )
+
+        writer.writerow(
+            ["Mean", statistics.mean]
+        )
+
+        writer.writerow(
+            ["RMS", statistics.rms]
+        )
+
+        writer.writerow(
+            ["Variance", statistics.variance]
+        )
+
+        writer.writerow(
+            [
+                "Standard Deviation",
+                statistics.std,
+            ]
+        )
+
+        writer.writerow(
+            ["Peak", statistics.peak]
+        )
+
+        writer.writerow(
+            [
+                "Peak-to-Peak",
+                statistics.peak_to_peak,
+            ]
+        )
+
+        writer.writerow(
+            ["Energy", statistics.energy]
+        )
+
+        writer.writerow(
+            [
+                "Average Power",
+                statistics.power,
+            ]
+        )
+
+
+# ==========================================================
+# Save Figure
+# ==========================================================
+
+def save_figure(
+    filename: Union[str, Path],
+    dpi: int = 300,
+) -> None:
+    """
+    Save current matplotlib figure.
+
+    Parameters
+    ----------
+    filename
+        Output image filename.
+
+    dpi
+        Figure resolution.
+    """
+
+    path = _to_path(
         filename,
-        data
+    )
+
+    # Automatically create output directory
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    plt.savefig(
+
+        path,
+
+        dpi=dpi,
+
+        bbox_inches="tight",
+
+    )
+
+# ==========================================================
+# Export
+# ==========================================================
+
+def export(
+    obj,
+    filename: Union[str, Path],
+) -> None:
+    """
+    Export object automatically.
+
+    Parameters
+    ----------
+    obj
+        Object to export.
+
+    filename
+        Output filename.
+    """
+
+    if isinstance(
+        obj,
+        Signal,
+    ):
+
+        export_signal_csv(
+            obj,
+            filename,
+        )
+
+        return
+
+    if isinstance(
+        obj,
+        Spectrum,
+    ):
+
+        export_spectrum_csv(
+            obj,
+            filename,
+        )
+
+        return
+
+    if isinstance(
+        obj,
+        SignalStatistics,
+    ):
+
+        export_statistics_csv(
+            obj,
+            filename,
+        )
+
+        return
+
+    raise TypeError(
+
+        "unsupported export object."
+
     )
 
 
 # ==========================================================
-# End of File
+# Public API
 # ==========================================================
+
+__all__ = [
+
+    "SignalExporter",
+
+    "export",
+
+    "export_signal_csv",
+
+    "export_spectrum_csv",
+
+    "export_statistics_csv",
+
+    "save_figure",
+
+]
+

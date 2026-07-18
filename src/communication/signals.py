@@ -97,7 +97,9 @@ class SignalGenerator:
 
             name=name,
 
-            unit="V"
+            unit="V",
+
+            info=info or {},
 
         )
 
@@ -347,6 +349,8 @@ def copy_signal(signal: Signal) -> Signal:
 
         unit=signal.unit,
 
+        info=signal.info.copy(),
+
     )
 
 
@@ -527,6 +531,30 @@ def multiply(
     result.name = signal1.name + " × " + signal2.name
 
     return result
+
+__all__ = [
+
+    # Generator
+    "SignalGenerator",
+
+    # Utility
+    "copy_signal",
+
+    # Normalize
+    "normalize",
+    "normalize_rms",
+
+    # Signal Operations
+    "scale",
+    "shift",
+    "reverse",
+    "offset",
+
+    # Arithmetic
+    "add",
+    "multiply",
+
+]
 
 
 # ==========================================================

@@ -1,641 +1,748 @@
 """
-=============================================================
-Communication Principle Python SDK
+==========================================================
+Communication_Principle_Python
 
-analysis.py
+File:
+    analysis.py
 
-Signal Analysis Module
+Version:
+    1.0.0
 
-Python
-------
-3.9+
+Description:
+    Signal Analysis Module
 
-Version
--------
-2.0.0
-=============================================================
+Python:
+    >=3.9
+
+==========================================================
 """
 
 from __future__ import annotations
 
-from typing import Union
+from typing import Optional
 
 import numpy as np
 
-from .models import (
-    Signal,
-    Spectrum,
-    SignalStatistics,
-    AnalysisResult,
-)
+from .models import Signal
+from .models import SignalStatistics
+from .models import AnalysisResult
 
 
-ArrayLike = Union[
-    Signal,
-    np.ndarray,
-    list,
-    tuple,
-]
+# ==========================================================
+# Signal Analyzer
+# ==========================================================
 
-
-# ============================================================
-# Analyzer
-# ============================================================
-
-class Analyzer:
+class SignalAnalyzer:
     """
-    Signal analysis toolbox.
+    Time-domain signal analyzer.
+
+    This class provides statistical analysis
+    for communication signals.
+
+    Examples
+    --------
+
+    >>> analyzer = SignalAnalyzer()
+
+    >>> statistics = analyzer.analyze(signal)
     """
 
-    def __init__(self):
-        pass
-
-    # --------------------------------------------------------
-
-    @staticmethod
-    def _to_array(
-        signal: ArrayLike
-    ) -> np.ndarray:
-        """
-        Convert supported input types to numpy array.
-        """
-
-        if isinstance(signal, Signal):
-            return signal.value
-
-        return np.asarray(
-            signal,
-            dtype=float
-        )
-
-    # --------------------------------------------------------
-
-    def rms(
+    def analyze(
         self,
-        signal: ArrayLike
-    ) -> float:
-        """
-        Root Mean Square.
-        """
-
-        x = self._to_array(signal)
-
-        if x.size == 0:
-            return 0.0
-
-        return float(
-            np.sqrt(
-                np.mean(
-                    x ** 2
-                )
-            )
-        )
-
-    # --------------------------------------------------------
-
-    def mean(
-        self,
-        signal: ArrayLike
-    ) -> float:
-
-        x = self._to_array(signal)
-
-        return float(
-            np.mean(x)
-        )
-
-    # --------------------------------------------------------
-
-    def variance(
-        self,
-        signal: ArrayLike
-    ) -> float:
-
-        x = self._to_array(signal)
-
-        return float(
-            np.var(x)
-        )
-
-    # --------------------------------------------------------
-
-    def std(
-        self,
-        signal: ArrayLike
-    ) -> float:
-
-        x = self._to_array(signal)
-
-        return float(
-            np.std(x)
-        )
-    # --------------------------------------------------------
-
-    def peak(
-        self,
-        signal: ArrayLike
-    ) -> float:
-
-        x = self._to_array(signal)
-
-        if x.size == 0:
-            return 0.0
-
-        return float(
-            np.max(
-                np.abs(x)
-            )
-        )
-
-    # --------------------------------------------------------
-
-    def peak_to_peak(
-        self,
-        signal: ArrayLike
-    ) -> float:
-
-        x = self._to_array(signal)
-
-        if x.size == 0:
-            return 0.0
-
-        return float(
-            np.ptp(x)
-        )
-
-    # --------------------------------------------------------
-
-    def energy(
-        self,
-        signal: ArrayLike
-    ) -> float:
-
-        x = self._to_array(signal)
-
-        return float(
-            np.sum(
-                x ** 2
-            )
-        )
-
-    # --------------------------------------------------------
-
-    def power(
-        self,
-        signal: ArrayLike
-    ) -> float:
-
-        x = self._to_array(signal)
-
-        if x.size == 0:
-            return 0.0
-
-        return float(
-            np.mean(
-                x ** 2
-            )
-        )
-
-    # --------------------------------------------------------
-
-    def statistics(
-        self,
-        signal: ArrayLike
+        signal: Signal,
     ) -> SignalStatistics:
         """
-        Calculate common statistics.
+        Analyze a signal.
+
+        Parameters
+        ----------
+        signal
+            Input signal.
+
+        Returns
+        -------
+        SignalStatistics
         """
 
-        x = self._to_array(signal)
-
-        return SignalStatistics(
-
-            mean=self.mean(x),
-
-            rms=self.rms(x),
-
-            variance=self.variance(x),
-
-            std=self.std(x),
-
-            peak=self.peak(x),
-
-            peak_to_peak=self.peak_to_peak(x),
-
-            energy=self.energy(x),
-
-            power=self.power(x),
-        )
-
-    # --------------------------------------------------------
+        return analyze(signal)
 
     def compare(
         self,
-        reference: ArrayLike,
-        target: ArrayLike
+        signal1: Signal,
+        signal2: Signal,
     ) -> AnalysisResult:
         """
         Compare two signals.
+
+        Parameters
+        ----------
+        signal1
+            First signal.
+
+        signal2
+            Second signal.
+
+        Returns
+        -------
+        AnalysisResult
         """
 
-        x = self._to_array(reference)
-
-        y = self._to_array(target)
-
-        if len(x) != len(y):
-
-            raise ValueError(
-                "Signal length mismatch."
-            )
-
-        error = x - y
-
-        mae = np.mean(
-            np.abs(error)
+        return compare(
+            signal1,
+            signal2,
         )
 
-        mse = np.mean(
-            error ** 2
-        )
 
-        rmse = np.sqrt(
-            mse
-        )
+# ==========================================================
+# Internal Helper
+# ==========================================================
 
-        if np.std(x) == 0 or np.std(y) == 0:
-
-            corr = 0.0
-
-        else:
-
-            corr = np.corrcoef(
-                x,
-                y
-            )[0, 1]
-
-        return AnalysisResult(
-
-            mae=float(mae),
-
-            mse=float(mse),
-
-            rmse=float(rmse),
-
-            correlation=float(corr),
-        )
-    # --------------------------------------------------------
-
-    def fft(
-        self,
-        signal: ArrayLike,
-        sampling_rate: float
-    ) -> Spectrum:
-        """
-        Fast Fourier Transform.
-        """
-
-        x = self._to_array(signal)
-
-        n = len(x)
-
-        if n == 0:
-            raise ValueError(
-                "Signal is empty."
-            )
-
-        spectrum = np.fft.rfft(x)
-
-        frequency = np.fft.rfftfreq(
-            n,
-            d=1.0 / sampling_rate
-        )
-
-        magnitude = np.abs(spectrum)
-
-        phase = np.angle(spectrum)
-
-        return Spectrum(
-
-            frequency=frequency,
-
-            magnitude=magnitude,
-
-            phase=phase,
-        )
-
-    # --------------------------------------------------------
-
-    def ifft(
-        self,
-        spectrum: Spectrum
-    ) -> np.ndarray:
-        """
-        Inverse FFT.
-        """
-
-        return np.fft.irfft(
-            spectrum.magnitude *
-            np.exp(
-                1j * spectrum.phase
-            )
-        )
-
-    # --------------------------------------------------------
-
-    def dominant_frequency(
-        self,
-        signal: ArrayLike,
-        sampling_rate: float
-    ) -> float:
-        """
-        Estimate dominant frequency.
-        """
-
-        spec = self.fft(
-            signal,
-            sampling_rate
-        )
-
-        index = np.argmax(
-            spec.magnitude
-        )
-
-        return float(
-            spec.frequency[index]
-        )
-
-    # --------------------------------------------------------
-
-    def spectrum_power(
-        self,
-        signal: ArrayLike
-    ) -> np.ndarray:
-        """
-        Power spectrum.
-        """
-
-        x = self._to_array(signal)
-
-        return np.abs(
-            np.fft.rfft(x)
-        ) ** 2
-
-    # --------------------------------------------------------
-
-    def spectrum_db(
-        self,
-        signal: ArrayLike
-    ) -> np.ndarray:
-        """
-        Spectrum in dB.
-        """
-
-        power = self.spectrum_power(
-            signal
-        )
-
-        power = np.maximum(
-            power,
-            1e-12
-        )
-
-        return 10.0 * np.log10(
-            power
-        )
-
-# ============================================================
-# Default Analyzer
-# ============================================================
-
-_default_analyzer = Analyzer()
-
-# ============================================================
-# Backward Compatibility
-# ============================================================
-
-SignalAnalyzer = Analyzer
-
-def analyze(signal: ArrayLike) -> SignalStatistics:
+def _check_signal(
+    signal: Signal,
+) -> None:
     """
-    Analyze signal and return statistics.
+    Validate Signal object.
     """
-    return _default_analyzer.statistics(signal)
 
-def snr(
-    reference: ArrayLike,
-    target: ArrayLike,
+    if not isinstance(
+        signal,
+        Signal,
+    ):
+
+        raise TypeError(
+            "signal must be a Signal object."
+        )
+
+    if signal.samples == 0:
+
+        raise ValueError(
+            "empty signal."
+        )
+
+
+# ==========================================================
+# Mean
+# ==========================================================
+
+def mean(
+    signal: Signal,
 ) -> float:
     """
-    Signal-to-Noise Ratio (dB).
+    Calculate signal mean.
     """
 
-    x = _default_analyzer._to_array(reference)
-    y = _default_analyzer._to_array(target)
-
-    noise = x - y
-
-    signal_power = np.mean(x ** 2)
-    noise_power = np.mean(noise ** 2)
-
-    if noise_power <= 1e-20:
-        return float("inf")
+    _check_signal(signal)
 
     return float(
-        10.0 * np.log10(signal_power / noise_power)
-    )
-
-def psnr(
-    reference: ArrayLike,
-    target: ArrayLike,
-    peak: float = 1.0,
-) -> float:
-    """
-    Peak Signal-to-Noise Ratio (dB).
-    """
-
-    x = _default_analyzer._to_array(reference)
-    y = _default_analyzer._to_array(target)
-
-    mse = np.mean((x - y) ** 2)
-
-    if mse <= 1e-20:
-        return float("inf")
-
-    return float(
-        10.0 * np.log10((peak ** 2) / mse)
+        np.mean(
+            signal.value
+        )
     )
 
 
-# ============================================================
-# Public API
-# ============================================================
+# ==========================================================
+# Maximum
+# ==========================================================
 
-def rms(signal: ArrayLike) -> float:
+def maximum(
+    signal: Signal,
+) -> float:
     """
-    Root Mean Square.
+    Calculate maximum value.
     """
-    return _default_analyzer.rms(signal)
 
+    _check_signal(signal)
 
-def mean(signal: ArrayLike) -> float:
-    """
-    Mean value.
-    """
-    return _default_analyzer.mean(signal)
-
-
-def variance(signal: ArrayLike) -> float:
-    """
-    Variance.
-    """
-    return _default_analyzer.variance(signal)
+    return float(
+        np.max(
+            signal.value
+        )
+    )
 
 
-def std(signal: ArrayLike) -> float:
+# ==========================================================
+# Minimum
+# ==========================================================
+
+def minimum(
+    signal: Signal,
+) -> float:
     """
-    Standard deviation.
+    Calculate minimum value.
     """
-    return _default_analyzer.std(signal)
+
+    _check_signal(signal)
+
+    return float(
+        np.min(
+            signal.value
+        )
+    )
 
 
-def peak(signal: ArrayLike) -> float:
+# ==========================================================
+# RMS
+# ==========================================================
+
+def rms(
+    signal: Signal,
+) -> float:
     """
-    Peak value.
+    Calculate RMS value.
     """
-    return _default_analyzer.peak(signal)
+
+    _check_signal(signal)
+
+    return float(
+
+        np.sqrt(
+
+            np.mean(
+
+                signal.value ** 2
+
+            )
+
+        )
+
+    )
 
 
-def peak_to_peak(signal: ArrayLike) -> float:
+# ==========================================================
+# Variance
+# ==========================================================
+
+def variance(
+    signal: Signal,
+) -> float:
     """
-    Peak-to-peak value.
+    Calculate variance.
     """
-    return _default_analyzer.peak_to_peak(signal)
+
+    _check_signal(signal)
+
+    return float(
+
+        np.var(
+
+            signal.value
+
+        )
+
+    )
 
 
-def energy(signal: ArrayLike) -> float:
+# ==========================================================
+# Standard Deviation
+# ==========================================================
+
+def standard_deviation(
+    signal: Signal,
+) -> float:
     """
-    Signal energy.
+    Calculate standard deviation.
     """
-    return _default_analyzer.energy(signal)
+
+    _check_signal(signal)
+
+    return float(
+
+        np.std(
+
+            signal.value
+
+        )
+
+    )
+# ==========================================================
+# Peak-to-Peak
+# ==========================================================
+
+def peak_to_peak(
+    signal: Signal,
+) -> float:
+    """
+    Calculate peak-to-peak value.
+
+    Parameters
+    ----------
+    signal
+        Input signal.
+
+    Returns
+    -------
+    float
+        Peak-to-peak value.
+    """
+
+    _check_signal(signal)
+
+    return float(
+
+        np.ptp(
+
+            signal.value
+
+        )
+
+    )
 
 
-def power(signal: ArrayLike) -> float:
+# ==========================================================
+# Crest Factor
+# ==========================================================
+
+def crest_factor(
+    signal: Signal,
+) -> float:
     """
-    Average power.
+    Calculate crest factor.
+
+    Crest Factor = Peak / RMS
+
+    Parameters
+    ----------
+    signal
+        Input signal.
+
+    Returns
+    -------
+    float
+        Crest factor.
     """
-    return _default_analyzer.power(signal)
+
+    _check_signal(signal)
+
+    rms_value = rms(signal)
+
+    if rms_value == 0:
+
+        return 0.0
+
+    peak = np.max(
+
+        np.abs(
+
+            signal.value
+
+        )
+
+    )
+
+    return float(
+
+        peak / rms_value
+
+    )
 
 
-def statistics(signal: ArrayLike) -> SignalStatistics:
-    """
-    Signal statistics.
-    """
-    return _default_analyzer.statistics(signal)
+# ==========================================================
+# Energy
+# ==========================================================
 
+def energy(
+    signal: Signal,
+) -> float:
+    """
+    Calculate signal energy.
+
+    Parameters
+    ----------
+    signal
+        Input signal.
+
+    Returns
+    -------
+    float
+        Signal energy.
+    """
+
+    _check_signal(signal)
+
+    return float(
+
+        np.sum(
+
+            signal.value ** 2
+
+        )
+
+    )
+
+
+# ==========================================================
+# Average Power
+# ==========================================================
+
+def average_power(
+    signal: Signal,
+) -> float:
+    """
+    Calculate average power.
+
+    Parameters
+    ----------
+    signal
+        Input signal.
+
+    Returns
+    -------
+    float
+        Average power.
+    """
+
+    _check_signal(signal)
+
+    return float(
+
+        np.mean(
+
+            signal.value ** 2
+
+        )
+
+    )
+
+
+# ==========================================================
+# Analyze
+# ==========================================================
+
+def analyze(
+    signal: Signal,
+) -> SignalStatistics:
+    """
+    Analyze a signal.
+
+    Parameters
+    ----------
+    signal
+        Input signal.
+
+    Returns
+    -------
+    SignalStatistics
+        Signal statistics.
+    """
+
+    _check_signal(signal)
+
+    return SignalStatistics(
+
+        mean=mean(signal),
+
+        rms=rms(signal),
+
+        variance=variance(signal),
+
+        std=standard_deviation(signal),
+
+        peak=maximum(signal),
+
+        peak_to_peak=peak_to_peak(signal),
+
+        energy=energy(signal),
+
+        power=average_power(signal),
+
+    )
+
+# ==========================================================
+# Mean Absolute Error
+# ==========================================================
+
+def mae(
+    signal1: Signal,
+    signal2: Signal,
+) -> float:
+    """
+    Calculate Mean Absolute Error (MAE).
+
+    Parameters
+    ----------
+    signal1
+        First signal.
+
+    signal2
+        Second signal.
+
+    Returns
+    -------
+    float
+        Mean absolute error.
+    """
+
+    _check_signal(signal1)
+    _check_signal(signal2)
+
+    if signal1.samples != signal2.samples:
+
+        raise ValueError(
+            "signal length mismatch."
+        )
+
+    return float(
+
+        np.mean(
+
+            np.abs(
+
+                signal1.value -
+                signal2.value
+
+            )
+
+        )
+
+    )
+
+
+# ==========================================================
+# Mean Squared Error
+# ==========================================================
+
+def mse(
+    signal1: Signal,
+    signal2: Signal,
+) -> float:
+    """
+    Calculate Mean Squared Error (MSE).
+    """
+
+    _check_signal(signal1)
+    _check_signal(signal2)
+
+    if signal1.samples != signal2.samples:
+
+        raise ValueError(
+            "signal length mismatch."
+        )
+
+    return float(
+
+        np.mean(
+
+            (
+
+                signal1.value -
+                signal2.value
+
+            ) ** 2
+
+        )
+
+    )
+
+
+# ==========================================================
+# Root Mean Squared Error
+# ==========================================================
+
+def rmse(
+    signal1: Signal,
+    signal2: Signal,
+) -> float:
+    """
+    Calculate Root Mean Squared Error (RMSE).
+    """
+
+    return float(
+
+        np.sqrt(
+
+            mse(
+                signal1,
+                signal2,
+            )
+
+        )
+
+    )
+
+
+# ==========================================================
+# Correlation
+# ==========================================================
+
+def correlation(
+    signal1: Signal,
+    signal2: Signal,
+) -> float:
+    """
+    Calculate Pearson correlation coefficient.
+    """
+
+    _check_signal(signal1)
+    _check_signal(signal2)
+    if np.std(signal1.value) == 0:
+        return 0.0
+
+    if np.std(signal2.value) == 0:
+        return 0.0
+
+    if signal1.samples != signal2.samples:
+
+        raise ValueError(
+            "signal length mismatch."
+        )
+
+    coefficient = np.corrcoef(
+
+        signal1.value,
+
+        signal2.value,
+
+    )[0, 1]
+
+    return float(
+        coefficient
+    )
+
+
+# ==========================================================
+# Auto Correlation
+# ==========================================================
+
+def auto_correlation(
+    signal: Signal,
+) -> np.ndarray:
+    """
+    Calculate auto correlation.
+    Returns
+    -------
+    numpy.ndarray
+    Correlation sequence.
+    """
+
+    _check_signal(signal)
+
+    return np.correlate(
+
+        signal.value,
+
+        signal.value,
+
+        mode="full",
+
+    )
+
+
+# ==========================================================
+# Cross Correlation
+# ==========================================================
+
+def cross_correlation(
+    signal1: Signal,
+    signal2: Signal,
+) -> np.ndarray:
+    """
+    Calculate cross correlation.
+    Returns
+    -------
+    numpy.ndarray
+      Correlation sequence.
+    """
+
+    _check_signal(signal1)
+    _check_signal(signal2)
+    if signal1.samples != signal2.samples:
+        raise ValueError(
+            "signal length mismatch."
+        )
+
+    return np.correlate(
+
+        signal1.value,
+
+        signal2.value,
+
+        mode="full",
+
+    )
+
+
+# ==========================================================
+# Compare
+# ==========================================================
 
 def compare(
-    reference: ArrayLike,
-    target: ArrayLike,
+    signal1: Signal,
+    signal2: Signal,
 ) -> AnalysisResult:
     """
     Compare two signals.
+
+    Parameters
+    ----------
+    signal1
+        First signal.
+
+    signal2
+        Second signal.
+
+    Returns
+    -------
+    AnalysisResult
     """
-    return _default_analyzer.compare(
-        reference,
-        target,
+
+    return AnalysisResult(
+
+        mae=mae(
+            signal1,
+            signal2,
+        ),
+
+        mse=mse(
+            signal1,
+            signal2,
+        ),
+
+        rmse=rmse(
+            signal1,
+            signal2,
+        ),
+
+        correlation=correlation(
+            signal1,
+            signal2,
+        ),
+
     )
 
 
-def fft(
-    signal: ArrayLike,
-    sampling_rate: float,
-) -> Spectrum:
-    """
-    FFT.
-    """
-    return _default_analyzer.fft(
-        signal,
-        sampling_rate,
-    )
-
-
-def ifft(
-    spectrum: Spectrum,
-) -> np.ndarray:
-    """
-    Inverse FFT.
-    """
-    return _default_analyzer.ifft(
-        spectrum,
-    )
-
-
-def dominant_frequency(
-    signal: ArrayLike,
-    sampling_rate: float,
-) -> float:
-    """
-    Dominant frequency.
-    """
-    return _default_analyzer.dominant_frequency(
-        signal,
-        sampling_rate,
-    )
-
-
-def spectrum_power(
-    signal: ArrayLike,
-) -> np.ndarray:
-    """
-    Power spectrum.
-    """
-    return _default_analyzer.spectrum_power(
-        signal,
-    )
-
-
-def spectrum_db(
-    signal: ArrayLike,
-) -> np.ndarray:
-    """
-    Spectrum in dB.
-    """
-    return _default_analyzer.spectrum_db(
-        signal,
-    )
-
-# ============================================================
-# Public Export
-# ============================================================
+# ==========================================================
+# Public API
+# ==========================================================
 
 __all__ = [
 
-    "Analyzer",
     "SignalAnalyzer",
 
     "analyze",
-
-    "rms",
-    "mean",
-    "variance",
-    "std",
-    "peak",
-    "peak_to_peak",
-    "energy",
-    "power",
-
-    "statistics",
     "compare",
 
-    "snr",
-    "psnr",
+    "mean",
+    "maximum",
+    "minimum",
 
-    "fft",
-    "ifft",
-    "dominant_frequency",
-    "spectrum_power",
-    "spectrum_db",
+    "rms",
+
+    "variance",
+    "standard_deviation",
+
+    "peak_to_peak",
+    "crest_factor",
+
+    "energy",
+    "average_power",
+
+    "mae",
+    "mse",
+    "rmse",
+
+    "correlation",
+
+    "auto_correlation",
+    "cross_correlation",
 ]
-
-
 
